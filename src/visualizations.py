@@ -1,407 +1,178 @@
+"""Reusable charts built from the cleaned catalog and saved project outputs."""
+
+from __future__ import annotations
+
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
+import plotly.express as px
+import plotly.graph_objects as go
 
-from src.data_loader import load_data
+STATUS_COLUMN = "koi_disposition"
+STATUS_ORDER = ["CONFIRMED", "CANDIDATE", "FALSE POSITIVE"]
+STATUS_COLORS = {
+    "CONFIRMED": "#d95757",
+    "CANDIDATE": "#aab2bd",
+    "FALSE POSITIVE": "#5f6670",
+}
+FEATURE_LABELS = {
+    "koi_period": "Orbital period",
+    "koi_duration": "Transit duration",
+    "koi_prad": "Planetary radius",
+    "koi_teq": "Equilibrium temperature",
+    "koi_insol": "Insolation flux",
+    "koi_model_snr": "Signal-to-noise ratio",
+    "koi_steff": "Stellar temperature",
+    "koi_slogg": "Stellar surface gravity",
+    "koi_srad": "Stellar radius",
+    "koi_kepmag": "Kepler magnitude",
+}
 
 
-# ============================================================
-# OUTPUT DIRECTORY
-# ============================================================
+def chart_theme(figure: go.Figure, height: int = 360) -> go.Figure:
+    """Apply the app's restrained dark chart styling."""
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "results" / "figures"
-
-# Create the output directory if it does not exist
-FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-
-
-# ============================================================
-# HELPER
-# ============================================================
-
-def save_figure(filename: str) -> None:
-    """
-    Save the current Matplotlib figure into results/figures.
-    """
-    plt.tight_layout()
-
-    output_path = FIGURE_DIR / filename
-
-    plt.savefig(
-        output_path,
-        dpi=300,
-        bbox_inches="tight"
+    figure.update_layout(
+        template="plotly_dark",
+        height=height,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=12, r=12, t=48, b=12),
+        legend_title_text="",
     )
-
-    plt.show()
-    plt.close()
-
-    print(f"Saved: {output_path}")
+    figure.update_xaxes(showgrid=True, gridcolor="rgba(255,255,255,0.10)")
+    figure.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.10)")
+    return figure
 
 
-# ============================================================
-# 1. CLASSIFICATION DISTRIBUTION
-# ============================================================
-
-def plot_class_distribution(df: pd.DataFrame) -> None:
-    """
-    Plot the number of objects in each Kepler classification.
-    """
-
-    column = "exoplanet_archive_disposition"
-
-    counts = df[column].value_counts()
-
-    plt.figure(figsize=(8, 5))
-
-    counts.plot(kind="bar")
-
-    plt.title("Kepler Object Classification Distribution")
-    plt.xlabel("Classification")
-    plt.ylabel("Number of Objects")
-
-    plt.xticks(rotation=0)
-
-    save_figure("01_classification_distribution.png")
+def _clean(data: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    available = [column for column in columns if column in data.columns]
+    return data.loc[:, available].dropna().copy()
 
 
-# ============================================================
-# 2. PLANET RADIUS BY CLASSIFICATION
-# ============================================================
+def classification_distribution(data: pd.DataFrame) -> go.Figure:
+    counts = data[STATUS_COLUMN].value_counts().reindex(STATUS_ORDER, fill_value=0)
+    frame = counts.rename_axis("Disposition").reset_index(name="Objects")
+    figure = px.bar(
+        frame,
+        x="Disposition",
+        y="Objects",
+        color="Disposition",
+        category_orders={"Disposition": STATUS_ORDER},
+        color_discrete_map=STATUS_COLORS,
+        labels={"Objects": "Catalog objects", "Disposition": ""},
+        text_auto=True,
+    )
+    return chart_theme(figure, 320)
 
-def plot_radius_by_classification(df: pd.DataFrame) -> None:
-    """
-    Compare planetary radius across Kepler classification groups.
-    """
 
-    required_columns = [
-        "exoplanet_archive_disposition",
-        "planetary_radius_earth_radii"
+def classification_box(data: pd.DataFrame, column: str, label: str) -> go.Figure:
+    frame = _clean(data, [STATUS_COLUMN, column])
+    figure = px.box(
+        frame,
+        x=STATUS_COLUMN,
+        y=column,
+        color=STATUS_COLUMN,
+        category_orders={STATUS_COLUMN: STATUS_ORDER},
+        color_discrete_map=STATUS_COLORS,
+        points=False,
+        labels={STATUS_COLUMN: "", column: label},
+    )
+    return chart_theme(figure, 380)
+
+
+def relationship_scatter(
+    data: pd.DataFrame,
+    x_column: str,
+    y_column: str,
+    x_label: str,
+    y_label: str,
+) -> go.Figure:
+    frame = _clean(data, [STATUS_COLUMN, x_column, y_column, "kepoi_name"])
+    # The legacy project visualization uses the 99th percentile to keep dense
+    # relationships readable without changing the underlying catalog.
+    for column in [x_column, y_column]:
+        upper = frame[column].quantile(0.99)
+        frame = frame[frame[column] <= upper]
+    figure = px.scatter(
+        frame,
+        x=x_column,
+        y=y_column,
+        color=STATUS_COLUMN,
+        hover_name="kepoi_name" if "kepoi_name" in frame else None,
+        color_discrete_map=STATUS_COLORS,
+        labels={x_column: x_label, y_column: y_label, STATUS_COLUMN: ""},
+        opacity=0.62,
+    )
+    figure.update_traces(marker=dict(size=6))
+    figure = chart_theme(figure, 380)
+    figure.add_annotation(
+        text="Values above the 99th percentile are omitted for readability.",
+        xref="paper",
+        yref="paper",
+        x=0,
+        y=-0.18,
+        showarrow=False,
+        font=dict(size=10, color="#aab2bd"),
+    )
+    return figure
+
+
+def correlation_heatmap(data: pd.DataFrame) -> go.Figure:
+    columns = [
+        "koi_prad",
+        "koi_period",
+        "koi_depth",
+        "koi_teq",
+        "koi_insol",
+        "koi_steff",
+        "koi_srad",
+        "koi_slogg",
+        "koi_model_snr",
     ]
-
-    data = df[required_columns].dropna()
-
-    groups = []
-    labels = []
-
-    for classification, group in data.groupby(
-        "exoplanet_archive_disposition"
-    ):
-        groups.append(
-            group["planetary_radius_earth_radii"]
-        )
-
-        labels.append(classification)
-
-    plt.figure(figsize=(8, 5))
-
-    # tick_labels is used by newer Matplotlib versions
-    plt.boxplot(
-        groups,
-        tick_labels=labels
-    )
-
-    plt.title("Planetary Radius by Kepler Classification")
-    plt.xlabel("Classification")
-    plt.ylabel("Planetary Radius (Earth Radii)")
-
-    plt.xticks(rotation=15)
-
-    save_figure("02_radius_by_classification.png")
-
-
-# ============================================================
-# 3. ORBITAL PERIOD BY CLASSIFICATION
-# ============================================================
-
-def plot_period_by_classification(df: pd.DataFrame) -> None:
-    """
-    Compare orbital period across Kepler classification groups.
-    """
-
-    required_columns = [
-        "exoplanet_archive_disposition",
-        "orbital_period_days"
-    ]
-
-    data = df[required_columns].dropna()
-
-    groups = []
-    labels = []
-
-    for classification, group in data.groupby(
-        "exoplanet_archive_disposition"
-    ):
-        groups.append(
-            group["orbital_period_days"]
-        )
-
-        labels.append(classification)
-
-    plt.figure(figsize=(8, 5))
-
-    # tick_labels is used by newer Matplotlib versions
-    plt.boxplot(
-        groups,
-        tick_labels=labels
-    )
-
-    plt.title("Orbital Period by Kepler Classification")
-    plt.xlabel("Classification")
-    plt.ylabel("Orbital Period (Days)")
-
-    plt.xticks(rotation=15)
-
-    save_figure("03_period_by_classification.png")
-
-
-# ============================================================
-# 4. PLANET RADIUS VS TRANSIT DEPTH
-# ============================================================
-
-def plot_radius_vs_transit_depth(df: pd.DataFrame) -> None:
-    """
-    Show the relationship between planetary radius
-    and transit depth.
-    """
-
-    required_columns = [
-        "planetary_radius_earth_radii",
-        "transit_depth_ppm"
-    ]
-
-    data = df[required_columns].dropna()
-
-    plt.figure(figsize=(8, 5))
-
-    plt.scatter(
-        data["planetary_radius_earth_radii"],
-        data["transit_depth_ppm"],
-        alpha=0.5
-    )
-
-    plt.title("Planetary Radius vs Transit Depth")
-    plt.xlabel("Planetary Radius (Earth Radii)")
-    plt.ylabel("Transit Depth (ppm)")
-
-    save_figure("04_radius_vs_transit_depth.png")
-
-
-# ============================================================
-# 5. ORBITAL PERIOD VS EQUILIBRIUM TEMPERATURE
-# ============================================================
-
-def plot_period_vs_temperature(df: pd.DataFrame) -> None:
-    """
-    Show the relationship between orbital period
-    and planet equilibrium temperature.
-    """
-
-    required_columns = [
-        "orbital_period_days",
-        "equilibrium_temperature_k"
-    ]
-
-    data = df[required_columns].dropna()
-
-    plt.figure(figsize=(8, 5))
-
-    plt.scatter(
-        data["orbital_period_days"],
-        data["equilibrium_temperature_k"],
-        alpha=0.5
-    )
-
-    plt.title(
-        "Orbital Period vs Equilibrium Temperature"
-    )
-
-    plt.xlabel("Orbital Period (Days)")
-    plt.ylabel("Equilibrium Temperature (K)")
-
-    save_figure("05_period_vs_temperature.png")
-
-
-# ============================================================
-# 6. TRANSIT DURATION VS ORBITAL PERIOD
-# ============================================================
-
-def plot_transit_duration_vs_period(df: pd.DataFrame) -> None:
-    """
-    Show the relationship between transit duration
-    and orbital period.
-    """
-
-    required_columns = [
-        "transit_duration_hours",
-        "orbital_period_days"
-    ]
-
-    data = df[required_columns].dropna()
-
-    plt.figure(figsize=(8, 5))
-
-    plt.scatter(
-        data["orbital_period_days"],
-        data["transit_duration_hours"],
-        alpha=0.5
-    )
-
-    plt.title(
-        "Orbital Period vs Transit Duration"
-    )
-
-    plt.xlabel("Orbital Period (Days)")
-    plt.ylabel("Transit Duration (Hours)")
-
-    save_figure("06_period_vs_transit_duration.png")
-
-
-# ============================================================
-# 7. STELLAR TEMPERATURE VS PLANET TEMPERATURE
-# ============================================================
-
-def plot_star_vs_planet_temperature(df: pd.DataFrame) -> None:
-    """
-    Show the relationship between stellar effective
-    temperature and planet equilibrium temperature.
-    """
-
-    required_columns = [
-        "stellar_effective_temperature_k",
-        "equilibrium_temperature_k"
-    ]
-
-    data = df[required_columns].dropna()
-
-    plt.figure(figsize=(8, 5))
-
-    plt.scatter(
-        data["stellar_effective_temperature_k"],
-        data["equilibrium_temperature_k"],
-        alpha=0.5
-    )
-
-    plt.title(
-        "Stellar Temperature vs Planet Equilibrium Temperature"
-    )
-
-    plt.xlabel(
-        "Stellar Effective Temperature (K)"
-    )
-
-    plt.ylabel(
-        "Planet Equilibrium Temperature (K)"
-    )
-
-    save_figure("07_star_vs_planet_temperature.png")
-
-
-# ============================================================
-# 8. CORRELATION HEATMAP
-# ============================================================
-
-def plot_correlation_heatmap(df: pd.DataFrame) -> None:
-    """
-    Plot a correlation matrix for important numerical
-    Kepler properties.
-    """
-
-    features = [
-        "orbital_period_days",
-        "impact_parameter",
-        "transit_duration_hours",
-        "transit_depth_ppm",
-        "planetary_radius_earth_radii",
-        "equilibrium_temperature_k",
-        "insolation_flux",
-        "transit_signal_to_noise_ratio",
-        "stellar_effective_temperature_k",
-        "stellar_surface_gravity_log10",
-        "stellar_radius_solar_radii",
-        "kepler_band_magnitude"
-    ]
-
-    available_features = [
-        feature
-        for feature in features
-        if feature in df.columns
-    ]
-
-    correlation = df[available_features].corr()
-
-    plt.figure(figsize=(12, 9))
-
-    plt.imshow(
+    frame = _clean(data, columns).rename(columns=FEATURE_LABELS | {"koi_depth": "Transit depth"})
+    correlation = frame.corr(numeric_only=True)
+    figure = px.imshow(
         correlation,
-        interpolation="nearest",
-        aspect="auto"
+        text_auto=".2f",
+        zmin=-1,
+        zmax=1,
+        color_continuous_scale=["#303640", "#aab2bd", "#d95757"],
+        labels={"color": "Correlation"},
     )
+    return chart_theme(figure, 560)
 
-    plt.colorbar(
-        label="Correlation"
+
+def feature_importance_chart(importance: pd.DataFrame) -> go.Figure:
+    frame = importance.copy()
+    frame["Feature"] = frame["Feature"].map(FEATURE_LABELS).fillna(frame["Feature"])
+    frame = frame.sort_values("Importance", ascending=False).head(8)
+    figure = px.bar(
+        frame.sort_values("Importance"),
+        x="Importance",
+        y="Feature",
+        orientation="h",
+        labels={"Importance": "Saved importance", "Feature": ""},
+        color_discrete_sequence=["#d95757"],
     )
+    return chart_theme(figure, 400)
 
-    plt.xticks(
-        range(len(correlation.columns)),
-        correlation.columns,
-        rotation=90
+
+def model_comparison_chart(model_metrics: pd.DataFrame) -> go.Figure:
+    metrics = [column for column in ["Accuracy", "F1 Score", "ROC-AUC"] if column in model_metrics]
+    frame = model_metrics.melt(
+        id_vars="Model",
+        value_vars=metrics,
+        var_name="Metric",
+        value_name="Score",
     )
-
-    plt.yticks(
-        range(len(correlation.columns)),
-        correlation.columns
+    figure = px.bar(
+        frame,
+        x="Score",
+        y="Metric",
+        color="Model",
+        barmode="group",
+        orientation="h",
+        range_x=[0, 1],
+        labels={"Score": "Saved score", "Metric": ""},
+        color_discrete_sequence=["#d95757", "#aab2bd"],
     )
-
-    plt.title(
-        "Correlation Heatmap of Kepler Properties"
-    )
-
-    save_figure("08_correlation_heatmap.png")
-
-
-# ============================================================
-# MAIN
-# ============================================================
-
-if __name__ == "__main__":
-
-    print("=" * 60)
-    print("KEPLER EXOPLANET VISUALIZATION")
-    print("=" * 60)
-
-    # Load cleaned dataset
-    df = load_data()
-
-    print(f"\nDataset loaded: {df.shape[0]} rows × {df.shape[1]} columns")
-
-    print("\nGenerating visualizations...\n")
-
-    # 1
-    plot_class_distribution(df)
-
-    # 2
-    plot_radius_by_classification(df)
-
-    # 3
-    plot_period_by_classification(df)
-
-    # 4
-    plot_radius_vs_transit_depth(df)
-
-    # 5
-    plot_period_vs_temperature(df)
-
-    # 6
-    plot_transit_duration_vs_period(df)
-
-    # 7
-    plot_star_vs_planet_temperature(df)
-
-    # 8
-    plot_correlation_heatmap(df)
-
-    print("\n" + "=" * 60)
-    print("ALL VISUALIZATIONS GENERATED SUCCESSFULLY")
-    print("=" * 60)
+    return chart_theme(figure, 340)

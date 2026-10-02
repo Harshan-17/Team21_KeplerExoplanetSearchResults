@@ -1,347 +1,195 @@
+"""Reusable access to the project's existing classification work."""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
 import pandas as pd
-
-from src.data_loader import load_data
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    classification_report,
-    confusion_matrix,
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+TRAIN_PATH = PROJECT_ROOT / "reports" / "kepler_train_by_host.xls"
+MODEL_COMPARISON_PATH = PROJECT_ROOT / "member 2" / "member2_model_comparison.csv"
+FEATURE_IMPORTANCE_PATH = PROJECT_ROOT / "member 2" / "member2_feature_importance.csv"
+CANDIDATE_PREDICTIONS_PATH = PROJECT_ROOT / "member 2" / "memeber2_candidate_predictions.csv"
+
+# This is the feature list used by notebooks/member2_classification.ipynb.
+FEATURE_COLUMNS = (
+    "koi_period",
+    "koi_duration",
+    "koi_prad",
+    "koi_teq",
+    "koi_insol",
+    "koi_model_snr",
+    "koi_steff",
+    "koi_slogg",
+    "koi_srad",
+    "koi_kepmag",
 )
+MODEL_NAMES = ("Random Forest", "Logistic Regression")
+CLASS_LABELS = {0: "FALSE POSITIVE", 1: "CONFIRMED"}
 
 
-# ============================================================
-# FEATURES AND TARGET
-# ============================================================
+@dataclass(frozen=True)
+class ModelPrediction:
+    """A binary screening result for one catalog row."""
 
-FEATURES = [
-    "orbital_period_days",
-    "impact_parameter",
-    "transit_duration_hours",
-    "transit_depth_ppm",
-    "planetary_radius_earth_radii",
-    "equilibrium_temperature_k",
-    "insolation_flux",
-    "transit_signal_to_noise_ratio",
-    "stellar_effective_temperature_k",
-    "stellar_surface_gravity_log10",
-    "stellar_radius_solar_radii",
-    "kepler_band_magnitude",
-]
-
-TARGET = "exoplanet_archive_disposition"
+    available: bool
+    model_name: str
+    predicted_class: str | None
+    probabilities: dict[str, float]
+    source: str | None = None
 
 
-# ============================================================
-# PREPARE DATA
-# ============================================================
+@dataclass(frozen=True)
+class ModelBundle:
+    """Cached models and saved results produced by the project notebook."""
 
-def prepare_ml_data(df: pd.DataFrame):
-
-    available_features = [
-        feature
-        for feature in FEATURES
-        if feature in df.columns
-    ]
-
-    required_columns = available_features + [TARGET]
-
-    data = df[required_columns].dropna()
-
-    X = data[available_features]
-    y = data[TARGET]
-
-    return X, y
+    models: dict[str, Any]
+    model_comparison: pd.DataFrame
+    candidate_predictions: pd.DataFrame
 
 
-# ============================================================
-# TRAIN LOGISTIC REGRESSION
-# ============================================================
+@dataclass(frozen=True)
+class SavedMLResults:
+    """Saved evaluation and candidate-screening outputs from the project."""
 
-def train_logistic_regression(X_train, X_test, y_train, y_test):
-
-    scaler = StandardScaler()
-
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-
-    model = LogisticRegression(
-        max_iter=2000,
-        random_state=42
-    )
-
-    model.fit(
-        X_train_scaled,
-        y_train
-    )
-
-    predictions = model.predict(X_test_scaled)
-
-    return model, scaler, predictions
+    model_comparison: pd.DataFrame
+    feature_importance: pd.DataFrame
+    candidate_predictions: pd.DataFrame
 
 
-# ============================================================
-# TRAIN RANDOM FOREST
-# ============================================================
-
-def train_random_forest(X_train, X_test, y_train, y_test):
-
-    model = RandomForestClassifier(
-        n_estimators=200,
-        random_state=42,
-        class_weight="balanced"
-    )
-
-    model.fit(
-        X_train,
-        y_train
-    )
-
-    predictions = model.predict(X_test)
-
-    return model, predictions
-
-
-# ============================================================
-# MODEL EVALUATION
-# ============================================================
-
-def evaluate_model(y_test, predictions):
+def _build_models() -> dict[str, Any]:
+    """Build the same two estimators used by the existing notebook."""
 
     return {
-        "accuracy": accuracy_score(
-            y_test,
-            predictions
+        "Logistic Regression": Pipeline(
+            [
+                ("scaler", StandardScaler()),
+                ("model", LogisticRegression(max_iter=1000, random_state=42)),
+            ]
         ),
-
-        "precision": precision_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0
+        "Random Forest": RandomForestClassifier(
+            n_estimators=300,
+            random_state=42,
+            n_jobs=-1,
         ),
-
-        "recall": recall_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0
-        ),
-
-        "f1": f1_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0
-        )
     }
 
 
-# ============================================================
-# MAIN
-# ============================================================
+@lru_cache(maxsize=1)
+def load_saved_ml_results() -> SavedMLResults:
+    """Load the CSV artifacts generated by the existing classification notebook."""
 
-if __name__ == "__main__":
-
-    print("=" * 70)
-    print("KEPLER EXOPLANET MACHINE LEARNING")
-    print("=" * 70)
-
-    # --------------------------------------------------------
-    # Load data
-    # --------------------------------------------------------
-
-    df = load_data()
-
-    print(
-        f"\nOriginal dataset: "
-        f"{df.shape[0]} rows × {df.shape[1]} columns"
+    return SavedMLResults(
+        model_comparison=pd.read_csv(MODEL_COMPARISON_PATH),
+        feature_importance=pd.read_csv(FEATURE_IMPORTANCE_PATH),
+        candidate_predictions=pd.read_csv(CANDIDATE_PREDICTIONS_PATH, low_memory=False),
     )
 
-    # --------------------------------------------------------
-    # Prepare ML dataset
-    # --------------------------------------------------------
 
-    X, y = prepare_ml_data(df)
+@lru_cache(maxsize=1)
+def load_ml_bundle() -> ModelBundle:
+    """Load saved results and fit the notebook-equivalent models once per process.
 
-    print(
-        f"\nML dataset after removing missing values: "
-        f"{X.shape[0]} rows"
+    The repository does not contain serialized model files. The train split is
+    already prepared by host in ``reports/kepler_train_by_host.xls``; fitting
+    from that file preserves the notebook's data preparation and model setup.
+    ``lru_cache`` prevents model fitting on every Streamlit rerun.
+    """
+
+    train_data = pd.read_csv(TRAIN_PATH, low_memory=False)
+    train_labeled = train_data[
+        train_data["koi_disposition"].isin(["CONFIRMED", "FALSE POSITIVE"])
+    ].copy()
+    train_labeled["target"] = (train_labeled["koi_disposition"] == "CONFIRMED").astype(int)
+
+    train_features = train_labeled.loc[:, FEATURE_COLUMNS]
+    train_labels = train_labeled["target"]
+    models = _build_models()
+    for model in models.values():
+        model.fit(train_features, train_labels)
+
+    saved_results = load_saved_ml_results()
+    return ModelBundle(
+        models=models,
+        model_comparison=saved_results.model_comparison,
+        candidate_predictions=saved_results.candidate_predictions,
     )
 
-    print("\nFeatures:")
-    print(X.columns.tolist())
 
-    print("\nTarget distribution:")
-    print(y.value_counts())
+def _saved_candidate_probability(row: pd.Series, bundle: ModelBundle) -> float | None:
+    """Return the saved Random Forest probability when this row is in the artifact."""
 
-    # --------------------------------------------------------
-    # Train/test split
-    # --------------------------------------------------------
+    if "rowid" not in row or "rowid" not in bundle.candidate_predictions.columns:
+        return None
+    try:
+        rowid = int(float(row["rowid"]))
+    except (TypeError, ValueError):
+        return None
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.20,
-        random_state=42,
-        stratify=y
-    )
+    matches = bundle.candidate_predictions[
+        bundle.candidate_predictions["rowid"] == rowid
+    ]
+    if matches.empty:
+        return None
+    probability = matches.iloc[0].get("predicted_confirmed_probability")
+    try:
+        probability = float(probability)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(probability) or not 0 <= probability <= 1:
+        return None
+    return probability
 
-    print(
-        f"\nTraining samples: {len(X_train)}"
-    )
 
-    print(
-        f"Testing samples: {len(X_test)}"
-    )
+def predict_selected(row: pd.Series, model_name: str = "Random Forest") -> ModelPrediction:
+    """Predict the selected row with one of the project's cached models."""
 
-    # ========================================================
-    # LOGISTIC REGRESSION
-    # ========================================================
+    if model_name not in MODEL_NAMES:
+        raise ValueError(f"Unknown model: {model_name}")
 
-    print("\n" + "=" * 70)
-    print("LOGISTIC REGRESSION")
-    print("=" * 70)
-
-    logistic_model, scaler, logistic_predictions = (
-        train_logistic_regression(
-            X_train,
-            X_test,
-            y_train,
-            y_test
+    try:
+        bundle = load_ml_bundle()
+        features = pd.DataFrame(
+            [[row.get(column) for column in FEATURE_COLUMNS]],
+            columns=FEATURE_COLUMNS,
         )
-    )
+        if features.isna().any().any():
+            return ModelPrediction(False, model_name, None, {})
 
-    logistic_metrics = evaluate_model(
-        y_test,
-        logistic_predictions
-    )
-
-    print("\nPerformance:")
-
-    for metric, value in logistic_metrics.items():
-        print(
-            f"{metric.capitalize()}: "
-            f"{value:.4f}"
-        )
-
-    print("\nClassification Report:")
-
-    print(
-        classification_report(
-            y_test,
-            logistic_predictions,
-            zero_division=0
-        )
-    )
-
-    print("Confusion Matrix:")
-
-    print(
-        confusion_matrix(
-            y_test,
-            logistic_predictions
-        )
-    )
-
-    # ========================================================
-    # RANDOM FOREST
-    # ========================================================
-
-    print("\n" + "=" * 70)
-    print("RANDOM FOREST")
-    print("=" * 70)
-
-    random_forest_model, rf_predictions = (
-        train_random_forest(
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
-    )
-
-    rf_metrics = evaluate_model(
-        y_test,
-        rf_predictions
-    )
-
-    print("\nPerformance:")
-
-    for metric, value in rf_metrics.items():
-        print(
-            f"{metric.capitalize()}: "
-            f"{value:.4f}"
-        )
-
-    print("\nClassification Report:")
-
-    print(
-        classification_report(
-            y_test,
-            rf_predictions,
-            zero_division=0
-        )
-    )
-
-    print("Confusion Matrix:")
-
-    print(
-        confusion_matrix(
-            y_test,
-            rf_predictions
-        )
-    )
-
-    # ========================================================
-    # MODEL COMPARISON
-    # ========================================================
-
-    comparison = pd.DataFrame(
-        {
-            "Logistic Regression": logistic_metrics,
-            "Random Forest": rf_metrics
+        model = bundle.models[model_name]
+        predicted_id = int(model.predict(features)[0])
+        predicted_probabilities = model.predict_proba(features)[0]
+        probabilities = {
+            CLASS_LABELS[int(class_id)]: float(probability)
+            for class_id, probability in zip(model.classes_, predicted_probabilities)
         }
-    )
+        source = "Cached notebook-equivalent inference"
 
-    print("\n" + "=" * 70)
-    print("MODEL COMPARISON")
-    print("=" * 70)
+        # Prefer the saved candidate output for the Random Forest when it
+        # contains this row. It is the project's generated candidate artifact.
+        saved_probability = (
+            _saved_candidate_probability(row, bundle)
+            if model_name == "Random Forest"
+            else None
+        )
+        if saved_probability is not None:
+            probabilities = {
+                "FALSE POSITIVE": 1.0 - saved_probability,
+                "CONFIRMED": saved_probability,
+            }
+            source = "Saved candidate prediction artifact"
 
-    print(
-        comparison.round(4)
-    )
-
-    # ========================================================
-    # RANDOM FOREST FEATURE IMPORTANCE
-    # ========================================================
-
-    importance = pd.DataFrame(
-        {
-            "feature": X.columns,
-            "importance": random_forest_model.feature_importances_
-        }
-    )
-
-    importance = importance.sort_values(
-        by="importance",
-        ascending=False
-    )
-
-    print("\n" + "=" * 70)
-    print("RANDOM FOREST FEATURE IMPORTANCE")
-    print("=" * 70)
-
-    print(
-        importance.to_string(index=False)
-    )
-
-    print("\n" + "=" * 70)
-    print("MACHINE LEARNING COMPLETED")
-    print("=" * 70)
+        predicted_class = max(probabilities, key=probabilities.get)
+        return ModelPrediction(True, model_name, predicted_class, probabilities, source)
+    except (OSError, KeyError, ValueError, TypeError):
+        return ModelPrediction(False, model_name, None, {})

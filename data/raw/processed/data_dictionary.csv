@@ -1,0 +1,49 @@
+Column,Data Type,Category,Missing Values,Missing %,Meaning,ML Role
+rowid,int64,Numerical,0,0.0,,Potential feature
+kepid,int64,ID,0,0.0,Kepler identification number,Do not use directly
+kepoi_name,object,ID,0,0.0,Kepler Object of Interest name,Do not use directly
+kepler_name,object,ID,7270,76.01,Official Kepler name assigned to a confirmed planet,Do not use directly
+koi_disposition,object,Target,0,0.0,Final classification/disposition of the object,Target
+koi_pdisposition,object,Categorical,0,0.0,,Potential feature
+koi_score,float64,Numerical,1510,15.79,,Potential feature
+koi_fpflag_nt,int64,Numerical,0,0.0,,Potential feature
+koi_fpflag_ss,int64,Numerical,0,0.0,,Potential feature
+koi_fpflag_co,int64,Numerical,0,0.0,,Potential feature
+koi_fpflag_ec,int64,Numerical,0,0.0,,Potential feature
+koi_period,float64,Numerical,0,0.0,Orbital period of the candidate,Potential feature
+koi_period_err1,float64,Numerical,454,4.75,Upper uncertainty of orbital period,Potential feature
+koi_period_err2,float64,Numerical,454,4.75,Lower uncertainty of orbital period,Potential feature
+koi_time0bk,float64,Numerical,0,0.0,Transit midpoint time,Potential feature
+koi_time0bk_err1,float64,Numerical,454,4.75,Upper uncertainty of transit midpoint,Potential feature
+koi_time0bk_err2,float64,Numerical,454,4.75,Lower uncertainty of transit midpoint,Potential feature
+koi_impact,float64,Numerical,363,3.8,Impact parameter of the transit,Potential feature
+koi_impact_err1,float64,Numerical,454,4.75,,Potential feature
+koi_impact_err2,float64,Numerical,454,4.75,,Potential feature
+koi_duration,float64,Numerical,0,0.0,,Potential feature
+koi_duration_err1,float64,Numerical,454,4.75,,Potential feature
+koi_duration_err2,float64,Numerical,454,4.75,,Potential feature
+koi_depth,float64,Numerical,363,3.8,Transit depth,Potential feature
+koi_depth_err1,float64,Numerical,454,4.75,,Potential feature
+koi_depth_err2,float64,Numerical,454,4.75,,Potential feature
+koi_prad,float64,Numerical,363,3.8,Estimated planetary radius,Potential feature
+koi_prad_err1,float64,Numerical,363,3.8,,Potential feature
+koi_prad_err2,float64,Numerical,363,3.8,,Potential feature
+koi_teq,float64,Numerical,363,3.8,Estimated equilibrium temperature,Potential feature
+koi_insol,float64,Numerical,321,3.36,Estimated incident stellar flux,Potential feature
+koi_insol_err1,float64,Numerical,321,3.36,,Potential feature
+koi_insol_err2,float64,Numerical,321,3.36,,Potential feature
+koi_model_snr,float64,Numerical,363,3.8,,Potential feature
+koi_tce_plnt_num,float64,Numerical,346,3.62,,Potential feature
+koi_tce_delivname,object,Categorical,346,3.62,,Potential feature
+koi_steff,float64,Numerical,363,3.8,Effective temperature of the host star,Potential feature
+koi_steff_err1,float64,Numerical,468,4.89,,Potential feature
+koi_steff_err2,float64,Numerical,483,5.05,,Potential feature
+koi_slogg,float64,Numerical,363,3.8,Surface gravity of the host star,Potential feature
+koi_slogg_err1,float64,Numerical,468,4.89,,Potential feature
+koi_slogg_err2,float64,Numerical,468,4.89,,Potential feature
+koi_srad,float64,Numerical,363,3.8,Radius of the host star,Potential feature
+koi_srad_err1,float64,Numerical,468,4.89,,Potential feature
+koi_srad_err2,float64,Numerical,468,4.89,,Potential feature
+ra,float64,Numerical,0,0.0,,Potential feature
+dec,float64,Numerical,0,0.0,,Potential feature
+koi_kepmag,float64,Numerical,1,0.01,,Potential feature

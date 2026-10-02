@@ -1,0 +1,18 @@
+import pandas as pd
+import planet_analysis
+data = pd.read_csv(r"C:\Users\harsh\Downloads\Capstone-2026\Data_cleaned.csv")
+planet_stats = planet_analysis.analyze_planet_characteristics(data)
+host_star_stats = planet_analysis.analyze_host_star(data)
+correlations = planet_analysis.calculate_correlations(data)
+earth_sized = planet_analysis.find_earth_sized_candidates(data)
+temperate = planet_analysis.find_temperate_candidates(data)
+screened = planet_analysis.find_screened_candidates(data)
+print("Planet Characteristics:")
+print(planet_stats)
+print("Host Star Characteristics:")
+print(host_star_stats)
+print("Correlations:")
+print(correlations)
+print("Earth-sized Candidates:", len(earth_sized))
+print("Potentially Temperate Candidates:", len(temperate))
+print("Screened Candidates:", len(screened))
