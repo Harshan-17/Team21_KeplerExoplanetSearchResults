@@ -17,6 +17,8 @@ Replace the screenshot placeholders with real application screenshots when avail
 
 <br/>
 
+![Kepler Observatory — conceptual project banner](docs/kepler-observatory-banner.svg)
+
 *A space-inspired research platform bringing together Kepler Objects of Interest (KOIs), interactive orbital visualisation, transit timing, machine-learning screening, and statistical exploration.*
 
 </div>
@@ -138,34 +140,25 @@ AI-generated explanations should be grounded in available data and labelled appr
 
 ## 🖼️ Visual tour
 
-The repository contains the application source and analysis assets. Add real screenshots to the repository (for example, under `docs/screenshots/`) and replace the image paths below when the final screenshots are ready. These slots deliberately do not embed unrelated stock images or imply that an unverified preview is a current production screenshot.
+The diagrams below are **concept illustrations of the product experience**, not screenshots of a verified live deployment. They explain the intended information hierarchy and scientific workflow.
 
-<table>
-  <tr>
-    <td width="50%" align="center">
-      <strong>01 · Observatory</strong><br/>
-      <em>3D orbit, star, planet and transit telemetry</em><br/><br/>
-      <img src="docs/screenshots/observatory.png" alt="Add a screenshot of the Kepler Observatory 3D scene" width="100%"/>
-    </td>
-    <td width="50%" align="center">
-      <strong>02 · Explorer</strong><br/>
-      <em>Searchable catalogue and candidate profiles</em><br/><br/>
-      <img src="docs/screenshots/explorer.png" alt="Add a screenshot of the Kepler candidate explorer" width="100%"/>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <strong>03 · Transit Studio</strong><br/>
-      <em>Transit geometry and simulated light curves</em><br/><br/>
-      <img src="docs/screenshots/transit-studio.png" alt="Add a screenshot of the transit simulator" width="100%"/>
-    </td>
-    <td width="50%" align="center">
-      <strong>04 · Research / Analysis</strong><br/>
-      <em>Screening, model diagnostics and statistics</em><br/><br/>
-      <img src="docs/screenshots/research.png" alt="Add a screenshot of the research dashboards" width="100%"/>
-    </td>
-  </tr>
-</table>
+<div align="center">
+
+### Live transit countdown · Concept visual
+
+<img src="docs/transit-countdown-concept.svg" alt="Illustrative transit countdown and orbital telemetry panel" width="900"/>
+
+*Predicted transit time, live-updating timer, orbital parameters, and transit status belong together in one Observatory HUD. Example digits in this illustration are decorative, not live data.*
+
+### Research / Analysis · Concept visual
+
+<img src="docs/research-dashboard-concept.svg" alt="Illustrative research dashboard with screening table, scatter plot, correlation matrix, and model feature bars" width="900"/>
+
+*The research experience brings candidate prioritisation, scientific relationships, correlation views, and model diagnostics together. Charts should use actual project outputs when running.*
+
+</div>
+
+---
 
 ### How the platform connects the science
 
