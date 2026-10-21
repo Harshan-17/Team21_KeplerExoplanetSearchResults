@@ -214,91 +214,73 @@ The project has been documented around approximately **9,201 Kepler Objects of I
 
 ## 🧰 Technology
 
-The application repository includes technologies for interactive UI, 3D rendering, server-side API handling, and scientific analysis.
+This repository is the **scientific data and analysis layer** of the project.
 
 <div align="center">
 
-![React](https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Three.js](https://img.shields.io/badge/Three.js-WebGL-black?style=flat-square&logo=threedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-API-555555?style=flat-square&logo=express&logoColor=white)
-![Python](https://img.shields.io/badge/Python-Scientific%20analysis-3776AB?style=flat-square&logo=python&logoColor=white)
-![scikit--learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
+![Python](https://img.shields.io/badge/Python-Scientific%20computing-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-Data%20wrangling-150458?style=flat-square&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-Numerical%20analysis-013243?style=flat-square&logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-Statistics-8CAAE6?style=flat-square&logo=scipy&logoColor=white)
+![scikit--learn](https://img.shields.io/badge/scikit--learn-Machine%20learning-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
+![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat-square&logo=jupyter&logoColor=white)
 
 </div>
 
-The repository contains a React + TypeScript + Vite frontend, React Three Fiber / Three.js components, an Express TypeScript server, CSV-based scientific data, and Python analysis dependencies including NumPy, pandas, SciPy, Matplotlib, and scikit-learn. Exact runtime and deployment compatibility depends on the active project configuration.
+The Python dependency file includes **NumPy, pandas, Matplotlib, SciPy, scikit-learn, Jupyter, Streamlit, and joblib**. The separate companion web application is maintained in [KeplerTransit](https://github.com/Harshan-17/KeplerTransit), which contains the interactive React/TypeScript interface and API implementation.
 
 ---
-
-## 🚀 Run locally
+## 🚀 Work with the research code
 
 ### Prerequisites
 
-- Node.js (use a version supported by the project's dependencies)
-- npm
-- Python for the separate analysis notebooks/pipeline, if you plan to run them
+- Python 3
+- Git
+- Jupyter Notebook / JupyterLab (for the notebook workflow)
 
-### Web application
+### 1. Clone this repository
 
 ```bash
 git clone https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults.git
 cd Team21_KeplerExoplanetSearchResults
-npm install
-npm run dev
 ```
 
-The repository's current `package.json` and server configuration are the source of truth for available commands. If a command fails, check the package scripts and README's deployment notes against the current branch.
-
-### Environment variables
-
-If the Gemini assistant is enabled, configure its server-side key in your local environment (for example, in a `.env` file if supported by the server configuration):
-
-```dotenv
-GEMINI_API_KEY=your_key_here
-```
-
-- Do not commit real secrets.
-- Do not expose the key through client-side code or public environment variables.
-- The AI assistant may require a key; core dataset features should remain usable without one when the application supports a fallback.
-
-### Python analysis environment
+### 2. Create a Python environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment, then install the repository's scientific dependencies:
+Activate it, then install the research dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Open `notebooks/final_analysis.ipynb` with Jupyter to inspect the analysis workflow.
+### 3. Explore the notebook
+
+Open `notebooks/final_analysis.ipynb` in Jupyter and run the cells in order. Check any dataset paths referenced by the notebook or source modules if you launch it from a different working directory.
+
+### 4. Find the companion web app
+
+The interactive web application—including the 3D Observatory, transit countdown, candidate browser, research dashboards, and server-side API—is in the separate repository:
+
+**[Open KeplerTransit on GitHub →](https://github.com/Harshan-17/KeplerTransit)**
+
+That companion application may require Node.js/npm and a server-side `GEMINI_API_KEY` for Gemini AI features. Do not put real API keys in source control or browser code.
 
 ---
+## ☁️ Deployment & verification
 
-## ☁️ Deployment notes
+This repository primarily contains the **Python analysis, datasets, and research outputs**; it is not itself the React/Vite web-app root. For the interactive application's runtime and deployment configuration, use [the companion KeplerTransit repository](https://github.com/Harshan-17/KeplerTransit).
 
-The repository has been connected to a Vercel deployment during development, but a successful frontend build alone does not verify that the API functions, CSV file loading, Gemini integration, or every dashboard works in production.
-
-Before considering a deployment healthy, verify:
-- The root path displays the actual Observatory interface.
-- API endpoints return JSON with populated data where expected.
-- CSV datasets resolve correctly in the hosted runtime.
-- The countdown is derived from valid epoch/period parameters.
-- Candidate search, filtering, screening, statistics, and chart data work.
-- Gemini credentials are configured server-side if AI features are enabled.
-- Browser console and serverless logs contain no unresolved runtime errors.
-
-Deployment setup may need to be adapted to the hosting platform's serverless runtime and filesystem rules.
+A successful frontend build does not by itself confirm that API routes, CSV loading, live transit calculations, or optional Gemini integration work in a hosted environment. For a production check, verify both the root website and the API routes against the active deployment and inspect runtime logs for errors.
 
 ---
-
 ## 🧭 Project navigation
 
-- **Source code:** [Browse the repository](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults)
+- **Research/data repository:** [Browse this repository](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults)
+- **Interactive web application:** [KeplerTransit repository](https://github.com/Harshan-17/KeplerTransit)
 - **Data:** [Cleaned Kepler dataset](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults/tree/main/data/raw/processed)
 - **Screening outputs:** [Results tables](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults/tree/main/results/tables)
 - **Analysis notebook:** [final_analysis.ipynb](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults/blob/main/notebooks/final_analysis.ipynb)
