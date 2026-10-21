@@ -1,7 +1,7 @@
 <!--
 KEPLER OBSERVATORY
-README visual showcase — GitHub-renderable Markdown + Mermaid.
-Replace the screenshot placeholders with real application screenshots when available.
+Project showcase with custom SVG concept visuals and a Mermaid research workflow.
+The countdown and AI visuals are conceptual illustrations, not live application screenshots.
 -->
 
 <div align="center">
