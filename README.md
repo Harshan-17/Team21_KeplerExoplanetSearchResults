@@ -7,9 +7,9 @@ Replace the screenshot placeholders with real application screenshots when avail
 <div align="center">
 
 # ✦ KEPLER OBSERVATORY
-### AI-Assisted Exoplanet Discovery, Transit Telemetry & Scientific Analysis
+### Live Transit Intelligence · Kepler AI · Exoplanet Research
 
-**Explore distant worlds. Follow predicted transits. Investigate the data behind discovery.**
+**Track the next transit. Ask better scientific questions. Turn Kepler data into insight.**
 
 [![Repository](https://img.shields.io/badge/GitHub-Source%20Code-181717?style=for-the-badge&logo=github)](https://github.com/Harshan-17/Team21_KeplerExoplanetSearchResults)
 [![Mission](https://img.shields.io/badge/Mission-NASA%20Kepler-0B3D91?style=for-the-badge)](https://science.nasa.gov/mission/kepler/)
@@ -19,7 +19,7 @@ Replace the screenshot placeholders with real application screenshots when avail
 
 ![Kepler Observatory — conceptual project banner](docs/kepler-observatory-banner.svg)
 
-*A space-inspired research platform bringing together Kepler Objects of Interest (KOIs), interactive orbital visualisation, transit timing, machine-learning screening, and statistical exploration.*
+*An AI-assisted research experience centred on predicted transit events, candidate intelligence, scientific analysis, and clear explanations of Kepler mission data.*
 
 </div>
 
@@ -27,157 +27,163 @@ Replace the screenshot placeholders with real application screenshots when avail
 
 ## 🌌 The idea
 
-**Kepler Observatory** is an interactive exoplanet research and analysis platform built around NASA's Kepler mission data. It aims to make a large scientific catalogue easier to explore by combining a cinematic observatory with searchable records, calculated transit telemetry, screening results, scientific plots, and an AI research assistant.
+**Kepler Observatory is built around transit intelligence and scientific discovery.** It helps users understand *when a candidate may transit next*, explore what its parameters mean, compare screening results, and ask research questions grounded in the available Kepler dataset.
 
-Instead of treating the dataset as a spreadsheet alone, the platform connects a selected candidate to its parameters, predicted transit timing, light-curve simulation, and analytical context.
+The experience is organised around four connected goals: **predict, explain, discover, and analyse**. A selected candidate links its archive measurements to calculated ephemeris timing, screening information, charts, and contextual AI assistance. A restrained astronomical visual layer supports the experience; it is not the product's main purpose.
 
-> **Core principle:** the interface should make science easier to investigate—not disguise missing observations with invented data. Observed measurements, calculated predictions, model outputs, and simulations should be clearly distinguished.
+> **Scientific principle:** keep observations, calculated predictions, simulations, and machine-learning outputs distinct. Predictions and model scores can inform investigation, but they do not replace observational confirmation.
 
 <div align="center">
 
-| ✨ Observe | 🔎 Explore | 🛰️ Predict | 🧠 Analyse |
+| ⏱️ Predict | 🤖 Explain | 🔎 Discover | 📈 Analyse |
 |:---:|:---:|:---:|:---:|
-| 3D star–planet scene | Searchable KOI catalogue | Live-updating transit countdown | ML and statistical insights |
+| Next-transit countdown | Kepler AI research assistant | Searchable KOI catalogue | ML and statistical insights |
 
 </div>
 
-## 🪐 Main experiences
+## ⭐ Main experiences
 
-### 1. Interactive 3D Observatory
+### 1. Live transit countdown — the signature feature
 
-A cinematic view of a host star and an orbiting exoplanet, designed as the main entry point to the platform.
+Track the next **calculated transit** for a selected Kepler candidate. The countdown is intended to show days, hours, minutes, and seconds alongside the target's KOI identifier, predicted transit time, orbital period, transit duration, transit depth, and `UPCOMING` / `IN PROGRESS` status.
 
-- Central host star, orbital path, and continuously moving planet.
-- Temperature-inspired stellar and planet palettes.
-- Procedural surface detail, atmospheric glow, and pointer/touch interaction where supported.
-- Observatory telemetry that follows the selected candidate.
-- A space-themed HUD with concise scientific parameters.
-
-### 2. Live transit countdown
-
-The Observatory's signature telemetry feature is a countdown to a candidate's next **calculated transit**.
-
-The intended display brings together the target name and KOI, next predicted transit time, a days–hours–minutes–seconds countdown, orbital period, transit duration, transit depth, and an `UPCOMING` / `IN PROGRESS` status.
-
-Transit timing is derived from the candidate's reference epoch and orbital period:
+Transit timing follows the ephemeris relation:
 
 \[
 t_n = t_0 + nP
 \]
 
-where \(t_0\) is the reference transit epoch, \(P\) is the orbital period, and \(n\) is the integer transit cycle.
-
-For Kepler time values, the project uses the convention:
+where \(t_0\) is the reference transit epoch, \(P\) is the orbital period, and \(n\) is the transit cycle number. The Kepler time convention used by the project is:
 
 \[
 \mathrm{BKJD} = \mathrm{BJD} - 2454833.0
 \]
 
-Countdowns are **ephemeris calculations**, not a claim that a telescope is currently observing the event. Accurate predictions depend on valid source parameters and their uncertainties.
+The countdown should update from real timestamps, not a frozen timer. It represents a **prediction from ephemeris parameters**, not confirmation that a telescope is observing the event. Parameter uncertainty can affect predicted timing.
 
-### 3. Explore the Kepler catalogue
+### 2. Kepler AI — research assistant
 
-Browse the cleaned KOI dataset with candidate search, filters, sorting, pagination, and individual candidate details.
+Ask questions about candidate parameters, transit depth, orbital timing, screening output, model behaviour, and statistical relationships.
 
-Candidate parameters represented in the project include:
+The intended assistant helps users:
+- Interpret a selected candidate's available measurements and units.
+- Explain transit physics and ephemeris calculations.
+- Compare candidate records and screening results.
+- Summarise relationships found in analysis outputs.
+- Identify when values are unavailable or evidence is insufficient.
+
+The companion application includes a Gemini integration path. AI access may require a server-side `GEMINI_API_KEY`; never expose the key in browser code. AI explanations should be grounded in data and checked against source results.
+
+### 3. Explore — searchable Kepler candidate catalogue
+
+Browse the cleaned KOI dataset through search, filters, sorting, pagination, and candidate profiles. Search targets by KOI identifier, official planet name, or Kepler identifier.
+
+Candidate measurements represented in the project include:
 
 - Archive disposition and disposition score
-- Planet radius and orbital period
+- Planetary radius and orbital period
 - Transit epoch, duration, and depth
 - Equilibrium temperature and insolation flux
 - Transit signal-to-noise ratio (SNR)
 - Impact parameter
 - Stellar temperature, radius, surface gravity, and Kepler-band magnitude
 
-Missing measurements should be presented as unavailable rather than filled with fabricated values.
+Missing measurements should be displayed as unavailable rather than invented. Candidate selection is designed to connect the record with its calculated timing and relevant research views.
 
-### 4. Candidate Screening
+### 4. Candidate Screening — prioritise follow-up
 
-A ranked view of the supplied screening results for follow-up prioritisation, including screening probabilities, score and priority tier where present in the data.
+Explore the supplied screening output by score, probability, and priority tier when those fields are available. Review ranked candidates, inspect the supporting parameters, and understand why a target might be prioritised for additional investigation.
 
-The repository's application documentation describes this score as:
+The project describes the screening score as:
 
 \[
 \mathrm{Priority\ Score} =
 \big(P(\mathrm{confirmed}) + P(\mathrm{candidate})\big) \times 100
 \]
 
-The score supports **algorithmic prioritisation**. It is not itself scientific confirmation of a planet.
+This score is an **algorithmic prioritisation measure**, not scientific proof that a planet is confirmed.
 
-### 5. Transit Studio
+### 5. Statistical Insights — find patterns in the data
 
-An interactive way to understand how a planet passing in front of its host star produces a dip in measured brightness.
+Explore distributions and relationships across stellar and planetary parameters through statistical summaries, correlation analysis, heatmaps, and scatter plots where source results are available.
 
-The simulator is based on the approximate depth relationship:
+Examples include:
+- Planet radius versus transit depth.
+- Orbital period versus equilibrium temperature.
+- Transit SNR versus planet radius.
+- Transit duration and orbital parameters.
+
+Useful scientific context includes units, sample counts, missing-value handling, and statistical interpretation. Correlation indicates association, not causation.
+
+### 6. ML Models — understand the screening signals
+
+Review the project's documented Random Forest and Logistic Regression benchmarks, feature diagnostics, confusion matrices, and model comparisons where the corresponding stored outputs are available.
+
+Metrics must be interpreted in the context of how the model was trained and evaluated. Do not treat a benchmark as a guarantee of performance on new data or present it as independently reproduced unless that validation has been performed.
+
+### 7. Transit Studio — see how a transit signal forms
+
+Explore a planet passing in front of its host star with a light-curve simulation. Candidate parameters can inform the simulation where supported.
+
+The simplified transit-depth relation is:
 
 \[
 \frac{\Delta F}{F} \approx \left(\frac{R_p}{R_\star}\right)^2
 \]
 
-where \(R_p\) is the planet radius and \(R_\star\) is the stellar radius. This is a simplified approximation; stellar limb darkening and transit geometry affect a realistic light curve.
+where \(R_p\) is planet radius and \(R_\star\) is stellar radius. This is an approximation; geometry and stellar limb darkening influence real transit profiles.
 
-**Simulations must be labelled as simulations**, not as new NASA observations.
+Simulated curves must be labelled as **simulations**, not as direct NASA observations.
 
-### 6. ML Models
+### 8. Supporting astronomical visualisation
 
-A research view for understanding the project's documented model benchmarks, screening signals, model comparisons, and feature diagnostics.
-
-The project materials describe Random Forest and Logistic Regression baselines. Reported benchmark values should be interpreted in the context of the associated training/evaluation workflow, split strategy, and stored outputs; they are not a guarantee of generalisation to unseen data.
-
-### 7. Statistical Insights
-
-Explore the distributions and relationships between exoplanet and stellar parameters through statistical summaries, correlation analysis, heatmaps, and scatter plots where the relevant results are available.
-
-Potential relationships include radius vs. transit depth, orbital period vs. temperature, and transit SNR vs. planet radius. Correlation indicates association, not causation.
-
-### 8. Kepler AI research assistant
-
-A conversational interface intended to help users interpret candidate parameters, transit terminology, screening outputs, and statistical results. When enabled, the Gemini integration should call the model from the server side and keep the API key out of browser code.
-
-AI-generated explanations should be grounded in available data and labelled appropriately. AI access may require a configured API key; data exploration should not depend on the AI service being available.
-
----
+A subtle star-and-orbit scene can provide visual context for the selected candidate and add depth to the experience. It supports candidate selection and transit storytelling; the primary value of the platform remains countdown telemetry, AI-assisted interpretation, real-data exploration, and scientific analysis.
 
 ## 🖼️ Visual tour
 
-The diagrams below are **concept illustrations of the product experience**, not screenshots of a verified live deployment. They explain the intended information hierarchy and scientific workflow.
+The visuals below are **custom concept illustrations**, not screenshots of a verified live deployment. They show the information hierarchy and intended research experience.
 
 <div align="center">
 
-### Live transit countdown · Concept visual
+### The core experience · Predicted transit countdown
 
-<img src="docs/transit-countdown-concept.svg" alt="Illustrative transit countdown and orbital telemetry panel" width="900"/>
+<img src="docs/transit-countdown-concept.svg" alt="Conceptual countdown panel showing calculated transit telemetry and countdown units" width="900"/>
 
-*Predicted transit time, live-updating timer, orbital parameters, and transit status belong together in one Observatory HUD. Example digits in this illustration are decorative, not live data.*
+*The next predicted event, live-updating timer, selected target, and transit status are the first things users should understand. Countdown digits are illustrative, not live data.*
 
-### Research / Analysis · Concept visual
+### Kepler AI · Ask questions about the data
 
-<img src="docs/research-dashboard-concept.svg" alt="Illustrative research dashboard with screening table, scatter plot, correlation matrix, and model feature bars" width="900"/>
+<img src="docs/kepler-ai-concept.svg" alt="Concept illustration of the Kepler AI research assistant with a candidate context card" width="900"/>
 
-*The research experience brings candidate prioritisation, scientific relationships, correlation views, and model diagnostics together. Charts should use actual project outputs when running.*
+*The assistant is designed to explain available parameters and research results, while distinguishing source data from interpretation.*
+
+### Candidate screening and scientific insights
+
+<img src="docs/research-dashboard-concept.svg" alt="Conceptual research dashboard for candidate screening, scientific relationships, correlation matrix, and model features" width="900"/>
+
+*Screening, statistical plots, correlations, and model diagnostics provide the analysis behind the countdown and AI answers.*
 
 </div>
 
 ---
 
-### How the platform connects the science
+### How the research flow connects
 
 ```mermaid
 flowchart TD
-    A["Kepler archive / supplied CSV data"] --> B["Data parsing and validation"]
+    A["Kepler archive / supplied CSV data"] --> B["Data validation and parsing"]
     B --> C["Candidate catalogue"]
-    B --> D["Screening results"]
-    B --> E["Statistical analysis"]
-    C --> F["Candidate profile"]
-    F --> G["3D Observatory"]
-    F --> H["Transit Studio"]
-    C --> I["Calculated ephemeris"]
-    I --> J["Next-transit countdown"]
-    D --> K["Screening and ML views"]
-    E --> L["Charts and correlations"]
-    C --> M["Kepler AI context"]
-    D --> M
-    E --> M
+    C --> D["Reference epoch + orbital period"]
+    D --> E["Calculated next-transit countdown"]
+    C --> F["Kepler AI context"]
+    G["Screening results"] --> H["Candidate prioritisation"]
+    C --> H
+    B --> I["Statistical analysis"]
+    G --> F
+    I --> F
+    H --> F
+    C --> J["Transit Studio simulation"]
+    C --> K["Supporting astronomical visual"]
 ```
 
 ---
@@ -263,7 +269,7 @@ Open `notebooks/final_analysis.ipynb` in Jupyter and run the cells in order. Che
 
 ### 4. Find the companion web app
 
-The interactive web application—including the 3D Observatory, transit countdown, candidate browser, research dashboards, and server-side API—is in the separate repository:
+The interactive web application—including the transit countdown, Kepler AI interface, candidate browser, research dashboards, supporting astronomical visualisation, and server-side API—is in the separate repository:
 
 **[Open KeplerTransit on GitHub →](https://github.com/Harshan-17/KeplerTransit)**
 
@@ -297,6 +303,7 @@ A successful frontend build does not by itself confirm that API routes, CSV load
 - AI responses can be incomplete or incorrect and should be checked against source data.
 - Missing or unavailable measurements must not be silently replaced with fabricated values.
 - A visual planet surface is an illustrative representation, not a direct image of an exoplanet.
+- Example countdown and assistant panels in this README are concept illustrations; they do not represent live transit telemetry or an active AI response.
 
 ---
 
